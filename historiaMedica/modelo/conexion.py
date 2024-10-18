@@ -22,17 +22,17 @@ class ConexionDB:
             except sqlite3.Error as e:
                 print(f"Error al cerrar la conexión: {e}")
 
-# Verifica si la tabla Persona existe
-def verificar_tabla(conexion):
+# Verifica si una tabla existe
+def verificar_tabla(conexion, nombre_tabla):
     try:
-        conexion.cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='Persona';")
+        conexion.cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{nombre_tabla}';")
         result = conexion.cursor.fetchone()
         if result:
-            print("La tabla 'Persona' existe.")
+            print(f"La tabla '{nombre_tabla}' existe.")
         else:
-            print("La tabla 'Persona' no existe.")
+            print(f"La tabla '{nombre_tabla}' no existe.")
     except sqlite3.Error as e:
-        print(f"Error al verificar la tabla 'Persona': {e}")
+        print(f"Error al verificar la tabla '{nombre_tabla}': {e}")
 
 # Crea la tabla Persona si no existe
 def crear_tabla_persona(conexion):
@@ -60,6 +60,27 @@ def crear_tabla_persona(conexion):
         print("Tabla 'Persona' creada correctamente.")
     except sqlite3.Error as e:
         print(f"Error al crear la tabla 'Persona': {e}")
+
+# Crea la tabla 'historiaMedica' si no existe
+def crear_tabla_historiaMedica(conexion):
+    try:
+        conexion.cursor.execute("""
+            CREATE TABLE IF NOT EXISTS historiaMedica (
+                idHistoriaMedica INTEGER PRIMARY KEY AUTOINCREMENT,
+                idPersona INTEGER NOT NULL,
+                fechaHistoria TEXT NOT NULL,
+                motivo TEXT,
+                examenRecibido TEXT,
+                detalle TEXT,
+                examenSolicitado TEXT,
+                tratamiento TEXT,
+                pendiente TEXT,
+                FOREIGN KEY (idPersona) REFERENCES Persona(idPersona)
+            );
+        """)
+        print("Tabla 'historiaMedica' creada correctamente.")
+    except sqlite3.Error as e:
+        print(f"Error al crear la tabla 'historiaMedica': {e}")
 
 # Función para insertar un nuevo paciente en la tabla Persona
 def guardarDatoPaciente(persona):
@@ -121,15 +142,17 @@ class Persona:
     def __str__(self):
         return f'Persona[{self.nombre}, {self.apellidoPaterno}, {self.apellidoMaterno}, {self.dni}, {self.fechaNacimiento}, {self.edad}, {self.nombrePrepagaOS}, {self.numeroPrepagaOS}, {self.correo}, {self.telefono}, {self.Alergia}, {self.MedicacionActual}, {self.APPClinico}, {self.APPQuirurgico}]'
 
-# Iniciar la base de datos: verificar y crear la tabla si es necesario
+# Iniciar la base de datos: verificar y crear las tablas si es necesario
 def iniciar_db():
     conexion = ConexionDB()
     
-    # Verificar si la tabla 'Persona' existe
-    verificar_tabla(conexion)
-    
-    # Si no existe, crear la tabla
+    # Verificar y crear la tabla 'Persona'
+    verificar_tabla(conexion, "Persona")
     crear_tabla_persona(conexion)
+
+    # Verificar y crear la tabla 'historiaMedica'
+    verificar_tabla(conexion, "historiaMedica")
+    crear_tabla_historiaMedica(conexion)
     
     conexion.cerrarConexion()
 
